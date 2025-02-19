@@ -36,7 +36,7 @@ def llava_next_inference(prompt, image=None, video=None, document=None):
     video_path = None
     if video is not None:
         video_path = video
-    if document.name:
+    if document and document.name:
         # Process the document to extract text.
         doc_text = process_document(document.name)
         combined_prompt += f" [Document content: {doc_text}]"
