@@ -80,7 +80,6 @@ class LLMModel():
             image_tensors = process_images(images, self.image_processor, self.model.config)
             image_tensors = [_image.to(dtype=torch.float16, device=self.device) for _image in image_tensors]
             return image_tensors, images
-        # Return a dummy image tensor if none provided
         dummy = torch.zeros((3, 384, 384)).half().to(self.device)
         return [dummy], [dummy]
 
@@ -98,8 +97,6 @@ class LLMModel():
     def prompt(self, text: str = "Hello", images=None, video=None):
         # Process user text input
         user_message = text.replace("/im", DEFAULT_IMAGE_TOKEN)
-        # Optionally prepend an instruction if needed
-        user_message = "Answer the new question: " + user_message
 
         # Append the user message to the conversation history
         self.conv.append_message(self.conv.roles[0], user_message)
@@ -135,7 +132,8 @@ class LLMModel():
             do_sample=False,
             temperature=temp,
             max_new_tokens=4096,
-            use_cache=True
+            attention_mask = input_ids.ne(self.tokenizer.pad_token_id),
+            use_cache=False
         )
         text_outputs = self.tokenizer.batch_decode(cont, skip_special_tokens=True)
         return text_outputs[0]

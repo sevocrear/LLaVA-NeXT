@@ -2,19 +2,28 @@ import gradio as gr
 from PIL import Image
 import io
 from model_eval_tools import LLMModel
+import PyPDF2
 import fitz
-
 llm = LLMModel()
 
-def process_document(file_obj):
+def process_document(pdf_path):
+    """
+    Extracts text content from the PDF file specified by pdf_path using PyMuPDF.
+
+    Args:
+        pdf_path (str): The file path to the PDF document.
+
+    Returns:
+        str: The extracted text from the PDF, or an empty string if an error occurs.
+    """
     try:
-        """Extracts text from a PDF file using fitz."""
-        doc = fitz.open(file_obj)
+        doc = fitz.open(pdf_path)
         text = ""
         for page in doc:
             text += page.get_text()
         return text
     except Exception as e:
+        print("Error processing document:", e)
         return ""
 
 # LLaVA‑NeXT inference function.
@@ -27,12 +36,10 @@ def llava_next_inference(prompt, image=None, video=None, document=None):
     video_path = None
     if video is not None:
         video_path = video
-
-    if document is not None:
+    if document.name:
         # Process the document to extract text.
-        doc_text = process_document(document)
+        doc_text = process_document(document.name)
         combined_prompt += f" [Document content: {doc_text}]"
-
     # LLaVA‑NeXT model inference (e.g., model.chat(combined_prompt))
     output = llm.prompt(combined_prompt, images=images, video=video_path)
     response = f"{output}"
@@ -65,7 +72,7 @@ with gr.Blocks(title="LLaVA‑NeXT Web Chat") as demo:
     with gr.Row():
         image_input = gr.Image(label="Upload Image", type="numpy", optional=True)
         video_input = gr.Video(label="Upload Video", optional=True)
-        document_input = gr.File(label="Upload Document", optional=True)
+        document_input = gr.File(label="Upload Document", file_types=["file"], optional=True)
 
     response_output = gr.Textbox(label="Model Response")
 
