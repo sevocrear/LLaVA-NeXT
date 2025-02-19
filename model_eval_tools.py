@@ -40,6 +40,16 @@ class LLMModel():
         self.images_list = []
         self.video_frames = []
         self.video_tensors = []
+    def clean_history(self):
+        # Initialize conversation history using a conversation template.
+        # This conversation instance will accumulate the dialog turns.
+        self.conv = copy.deepcopy(conv_templates["qwen_1_5"])
+
+        self.video_tensors = []
+        self.image_tensors = []
+        self.images_list = []
+        self.video_frames = []
+        self.video_tensors = []
     # Function to extract uniformly sampled frames from a video
     def load_video(self, video_path, max_frames_num):
         if isinstance(video_path, str):
